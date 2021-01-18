@@ -1,11 +1,9 @@
-import { getParsedInstructionSet } from "./parsed";
-import { getRawInstructionSet } from "./raw";
-import { getValidatedInstructionSet } from "./validated";
+import { getParsedDocument } from "./parsed";
+import { IPath } from "./parsed/types";
+import { getRawDocument } from "./raw";
 
-export function getInstructionSet(input: string) {
-    // raw -> parse -> validate
-    const raw = getRawInstructionSet(input);
-    const parsed = getParsedInstructionSet(raw);
-    const validated = getValidatedInstructionSet(parsed);
-    return validated;
+export async function getDocument(file: IPath) {
+    const raw = await getRawDocument(file);
+    const parsed = getParsedDocument(raw);
+    return parsed;
 }

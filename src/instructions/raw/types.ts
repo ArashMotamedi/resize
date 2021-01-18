@@ -1,13 +1,18 @@
-import { IOperationNames } from "../parsed/types";
+import { IOperationName, IPath } from "../parsed/types";
 
-export type IRawInstructionSet = IRawInstructions[];
-
-export interface IRawInstructions {
-    file: string;
-    operations: IRawOperation[]
+export interface IRawDocument {
+    file: IPath,
+    segments: IRawSegment[]
 }
 
-export interface IRawOperation {
+export interface IRawSegment {
+    index: number;
+    source: string;
+    steps: IRawStep[]
+}
+
+export interface IRawStep {
+    index: number;
     operation: string;
     parameters: Record<string, string>;
 }

@@ -1,13 +1,26 @@
-import { getRawInstructionSetFromFlatFile } from "./flat";
-import { getRawInstructionSetFromJsonFile } from "./json";
+import { getRawSegmentsFromFlat } from "./flat";
+import { getRawSegmentsFromJson } from "./json";
+import fs from "fs";
+import { IRawDocument } from "./types";
+import { IPath } from "../parsed/types";
 
-export function getRawInstructionSet(input: string) {
+export async function getRawDocument(file: IPath): Promise<IRawDocument> {
+    const content = (await fs.promises.readFile(file.path)).toString();
     let data: any = undefined;
     try {
-        data = JSON.parse(input);
+        data = JSON.parse(content);
     } catch { }
 
-    if (data) return getRawInstructionSetFromJsonFile(data);
-    return getRawInstructionSetFromFlatFile(input);
+    if (data) {
+        const segments = getRawSegmentsFromJson(data);
+        return {
+            file,
+            segments
+        }
+    }
+    const segments = getRawSegmentsFromFlat(content);
+    return {
+        file, segments
+    }
 }
 

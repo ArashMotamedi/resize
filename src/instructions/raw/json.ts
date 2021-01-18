@@ -1,11 +1,11 @@
 import { createEquals } from "typescript-is";
 import { AppError } from "../../errors";
-import { IRawInstructions, IRawInstructionSet, IRawOperation } from "./types";
+import { IRawSegment, IRawStep } from "./types";
 
 const isArrayOfObjects = createEquals<{}[]>();
-const isJsonInstructions = createEquals<IJsonInstructionSet>();
+const isJsonInstructions = createEquals<IJsonDocument>();
 
-export function getRawInstructionSetFromJsonFile(data: object) {
+export function getRawSegmentsFromJson(data: object): IRawSegment[] {
 
     if (!isArrayOfObjects(data))
         throw new AppError("invalidFormat");
@@ -15,33 +15,35 @@ export function getRawInstructionSetFromJsonFile(data: object) {
     }
 
     try {
-
-        const rawInstructionSet: IRawInstructionSet = data.map(jsonInstruction => {
-            const rawInstructions: IRawInstructions = {
-                file: jsonInstruction.file,
-                operations: jsonInstruction.operations.map(jsonOperation => {
-                    const { operation, ...parameters } = jsonOperation;
-                    const rawOperation: IRawOperation = {
+        const rawSegments = data.map((jsonInstruction, index) => {
+            const rawSegment: IRawSegment = {
+                index,
+                source: jsonInstruction.source,
+                steps: jsonInstruction.steps.map((step, index) => {
+                    const { operation, ...parameters } = step;
+                    const rawStep: IRawStep = {
+                        index,
                         operation, parameters: stringifyParameters(parameters)
                     };
-                    return rawOperation;
+                    return rawStep;
                 })
             }
-            return rawInstructions;
+            return rawSegment;
         })
 
-        return rawInstructionSet;
+
+        return rawSegments;
     }
     catch (e) {
         throw new AppError("invalidFormat");
     }
 }
 
-type IJsonInstructionSet = IJsonInstructions[];
+type IJsonDocument = IJsonInstructions[];
 
 interface IJsonInstructions {
-    file: string;
-    operations: Array<{
+    source: string;
+    steps: Array<{
         operation: string;
         [key: string]: string | number | boolean;
     }>

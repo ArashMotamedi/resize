@@ -11,12 +11,18 @@ interface IAdditionalDetails {
     [key: string]: string | number | boolean | undefined;
 }
 
-export const errors = ["notJson", "invalidFormat"] as const;
+export const errors = [
+    "notJson",
+    "invalidFormat",
+    "noMatch",
+] as const;
+
 export type IErrorTypes = typeof errors[number];
 
 export const errorDetails: Record<IErrorTypes, IErrorDetails> = {
     notJson: { message: "Not JSON" },
     invalidFormat: { message: "Invalid file format." },
+    noMatch: { message: "Not a match" }
 }
 
 
@@ -46,10 +52,3 @@ export class AppError extends Error {
 export function isAppError(e: any, type: IErrorTypes) {
     return (e instanceof AppError && e.name === type);
 }
-
-// export function wrapError(e: any, type: IErrorTypes, details?: IAdditionalDetails) {
-//     if (e instanceof AppError)
-//         return e;
-
-//     return new AppError(type, details);
-// }

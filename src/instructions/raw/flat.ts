@@ -1,26 +1,29 @@
-import { IRawInstructionSet, IRawInstructions, IRawOperation } from "./types";
+import { IRawSegment, IRawStep } from "./types";
 
-export function getRawInstructionSetFromFlatFile(input: string) {
-    const interimInstructionSet = getInterimInstructionSet(input);
+export function getRawSegmentsFromFlat(content: string): IRawSegment[] {
+    const interimDocument = getInterimDocument(content);
 
-    const rawInstructionSet: IRawInstructionSet = interimInstructionSet.map(interimInstructions => {
-        const rawInstructions: IRawInstructions = {
-            file: interimInstructions.file,
-            operations: interimInstructions.operations.map(interimOperations => {
-                const rawOperation: IRawOperation = {
-                    operation: interimOperations.operation,
-                    parameters: parseParameters(interimOperations.parameters),
+    const segments = interimDocument.map((interimInstructions, index) => {
+        const rawSegment: IRawSegment = {
+            index,
+            source: interimInstructions.source,
+            steps: interimInstructions.steps.map((interimStep, index) => {
+                const rawOperation: IRawStep = {
+                    index,
+                    operation: interimStep.operation,
+                    parameters: parseParameters(interimStep.parameters),
                 }
                 return rawOperation;
             }),
         }
-        return rawInstructions;
-    });
+        return rawSegment;
+    })
 
-    return rawInstructionSet;
+
+    return segments;
 }
 
-function getInterimInstructionSet(input: string) {
+function getInterimDocument(input: string) {
     const instructionSet: IInterimInstructionSet[] = [];
 
     input = input.replaceAll("\r", "").replaceAll("\t", " ");
@@ -29,18 +32,18 @@ function getInterimInstructionSet(input: string) {
         const line = lines[i];
         const indent = getIndent(line);
         if (indent === 0) {
-            instructionSet.push({ file: line.trim(), operations: [] });
+            instructionSet.push({ source: line.trim(), steps: [] });
         } else {
-            if (last(instructionSet).operations.length === 0) {
+            if (last(instructionSet).steps.length === 0) {
                 const [operation, ...rest] = line.trim().split(" ").filter(part => part.trim());
-                last(instructionSet).operations.push({ indent: indent, operation, parameters: rest.join(" ") })
+                last(instructionSet).steps.push({ indent: indent, operation, parameters: rest.join(" ") })
             } else {
-                if (indent <= last(last(instructionSet).operations).indent) {
+                if (indent <= last(last(instructionSet).steps).indent) {
                     const [operation, ...rest] = line.trim().split(" ").filter(part => part.trim());
-                    last(instructionSet).operations.push({ indent: indent, operation, parameters: rest.join(" ") })
+                    last(instructionSet).steps.push({ indent: indent, operation, parameters: rest.join(" ") })
                 }
                 else {
-                    last(last(instructionSet).operations).parameters += ", " + line.trim();
+                    last(last(instructionSet).steps).parameters += ", " + line.trim();
                 }
             }
         }
@@ -77,11 +80,11 @@ function parseParameters(input: string) {
 }
 
 interface IInterimInstructionSet {
-    file: string;
-    operations: IInterimOperation[];
+    source: string;
+    steps: IInterimStep[];
 }
 
-interface IInterimOperation {
+interface IInterimStep {
     operation: string;
     indent: number;
     parameters: string;

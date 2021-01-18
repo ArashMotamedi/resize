@@ -1,27 +1,45 @@
-import { IRawInstructionSet } from "../raw/types";
-import { IInstructions, IInstructionSet, IOperation, IOperationNames, IPixelOrPercent, ISpecificOperation, operations } from "./types";
+import { AppError } from "../../errors";
+import { getPath } from "../../util";
+import { IRawDocument } from "../raw/types";
+import { IDocument, IOperationName, IPixelOrPercent, ISegment, IOperation, IStep } from "./types";
 
-export function getParsedInstructionSet(rawInstructionSet: IRawInstructionSet) {
-    const instructionSet: IInstructionSet = rawInstructionSet.map(
-        rawInstructions => {
-            const instructions: IInstructions = {
-                file: rawInstructions.file,
-                operations: rawInstructions.operations.map(rawOperation => {
-                    const operation: IOperation = {} as any;
-                    operation.operation = rawOperation.operation as any;
-                    operation.parameters = parseParameters(operation.operation, rawOperation.parameters);
-                    return operation;
-                })
-            }
-            return instructions;
-        }
-    );
-    return instructionSet;
+export function getParsedDocument(rawDocument: IRawDocument): IDocument {
+    const document: IDocument = {
+        file: rawDocument.file,
+        segments: []
+    }
+
+    document.segments = rawDocument.segments.map(rawSegment => {
+        const segment: ISegment = {
+            document,
+            index: rawSegment.index,
+            source: getPath(rawDocument.file.dir, rawSegment.source),
+            steps: []
+        };
+
+        segment.steps = rawSegment.steps.map((rawStep) => {
+            const step: IStep = {
+                segment,
+                index: rawStep.index,
+
+                // @ts-ignore
+                operation: rawStep.operation,
+
+                // @ts-ignore
+                parameters: parseParameters(rawStep.operation, rawStep.parameters),
+            };
+            return step;
+        });
+
+        return segment;
+    })
+
+    return document;
 }
 
-function parseParameters<T extends IOperationNames>(operation: T, parameters: Record<string, string>) {
+function parseParameters<T extends IOperationName>(operation: T, parameters: Record<string, string>) {
     const translator = translators[operation];
-    const result: ISpecificOperation<T>["parameters"] = {};
+    const result: IOperation<T>["parameters"] = {};
     Object.entries(parameters).forEach(([key, value]) => {
         // @ts-ignore
         const parser = translator[key];
@@ -38,8 +56,8 @@ function parseParameters<T extends IOperationNames>(operation: T, parameters: Re
 }
 
 type ITranslators = {
-    [key in IOperationNames]: {
-        [key2 in keyof ISpecificOperation<key>["parameters"]]: (input: string) => ISpecificOperation<key>["parameters"][key2]
+    [key in IOperationName]: {
+        [key2 in keyof IOperation<key>["parameters"]]: (input: string) => IOperation<key>["parameters"][key2]
     }
 }
 
@@ -86,7 +104,7 @@ function noUnitToPixel(input: string) {
     const pattern = /^\s*((\+|\-)?\s*\d*(\.\d+)?)\s*$/;
     const matches = input.match(pattern);
     if (!matches)
-        throw Error("Not a match");
+        throw new AppError("noMatch");
 
     const value = parseFloat(matches[0]);
     const unit = "px" as const;
@@ -97,7 +115,7 @@ function explicitlyPixels(input: string) {
     const pattern = /^\s*((\+|\-)?\s*\d*(\.\d+)?)\s*(px)\s*$/;
     const matches = input.match(pattern);
     if (!matches)
-        throw Error("Not a match");
+        throw new AppError("noMatch");
 
     const value = parseFloat(matches[1]);
     const unit = "px" as const;
@@ -108,7 +126,7 @@ function explicitlyPercent(input: string) {
     const pattern = /^\s*((\+|\-)?\s*\d*(\.\d+)?)\s*(%)\s*$/;
     const matches = input.match(pattern);
     if (!matches)
-        throw Error("Not a match");
+        throw new AppError("noMatch");
 
     const value = parseFloat(matches[1]);
     const unit = "%" as const;
@@ -120,7 +138,7 @@ function fractionToAspectRatio(input: string) {
     const pattern = /^\s*(\d+)\s*\/\s*(\d+)\s*$/;
     const matches = input.match(pattern);
     if (!matches)
-        throw Error("Not a match");
+        throw new AppError("noMatch");
 
     const width = parseInt(matches[1]);
     const height = parseInt(matches[2]);
@@ -132,7 +150,7 @@ function decimalToAspectRatio(input: string) {
     const pattern = /^\s*(\d*(\.\d+)?)\s*$/;
     const matches = input.match(pattern);
     if (!matches)
-        throw Error("Not a match");
+        throw new AppError("noMatch");
 
     const width = parseFloat(matches[0]);
     const height = 1;

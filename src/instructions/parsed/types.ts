@@ -1,28 +1,42 @@
 import { enumerate } from "ts-transformer-enumerate";
-import { keys } from "ts-transformer-keys";
 import { createEquals } from "typescript-is";
 
-export type IInstructionSet = IInstructions[];
-
-export interface IInstructions {
-    file: string;
-    operations: IOperation[]
+export interface IPath {
+    name: string; // image.jpg (just the file name or relative path)
+    path: string; // /dir1/dir2/image.jpg (full file path, including name)
+    dir: string; // /dir1/dir2 (full path of directly holding file)
 }
 
-export type IOperation = IResizeOperation |
-    ICropOperation | ISaveOperation | ICoverOperation;
+export interface IDocument {
+    file: IPath;
+    segments: ISegment[];
+}
 
-export type IOperationNames = IOperation["operation"];
-export const operations = Object.keys(enumerate<IOperationNames>()) as IOperationNames[];
+export interface ISegment {
+    index: number;
+    document: IDocument;
+    source: IPath;
+    steps: IStep[];
+}
 
-export type ISpecificOperation<T extends IOperationNames> =
+export type IStep<T extends (IOperationName | void) = void> = IOperation<T> & {
+    index: number;
+    segment: ISegment;
+}
+
+type IAllOperations = IResizeOperation | ICropOperation | ISaveOperation | ICoverOperation;
+
+export type IOperationName = IAllOperations["operation"];
+export const operationNames = Object.keys(enumerate<IOperationName>()) as IOperationName[];
+
+export type IOperation<T extends (IOperationName | void) = void> =
     T extends "resize" ? IResizeOperation :
     T extends "crop" ? ICropOperation :
     T extends "save" ? ISaveOperation :
     T extends "cover" ? ICoverOperation :
-    never;
+    IAllOperations;
 
-export const is: { [key in IOperationNames]: (input: any) => input is ISpecificOperation<key> } = {
+export const is: { [key in IOperationName]: (input: any) => input is IOperation<key> } = {
     cover: createEquals<ICoverOperation>(),
     crop: createEquals<ICropOperation>(),
     resize: createEquals<IResizeOperation>(),
