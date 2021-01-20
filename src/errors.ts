@@ -15,6 +15,10 @@ export const errors = [
     "notJson",
     "invalidFormat",
     "noMatch",
+    "notSupported",
+    "saveNoFileName",
+    "saveInvalidExtension",
+    "invalidDimensions"
 ] as const;
 
 export type IErrorTypes = typeof errors[number];
@@ -22,7 +26,11 @@ export type IErrorTypes = typeof errors[number];
 export const errorDetails: Record<IErrorTypes, IErrorDetails> = {
     notJson: { message: "Not JSON" },
     invalidFormat: { message: "Invalid file format." },
-    noMatch: { message: "Not a match" }
+    noMatch: { message: "Not a match" },
+    notSupported: { message: "Not supported" },
+    saveNoFileName: { message: "A file name was not provided." },
+    saveInvalidExtension: { message: "Invalid file extension." },
+    invalidDimensions: { message: "Invalid dimensions." }
 }
 
 

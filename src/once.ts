@@ -8,7 +8,7 @@ import { IPath } from "./instructions/parsed/types";
 
 export async function once() {
     const files: IPath[] = [];
-    const watcher = watch("**/*.resize");
+    const watcher = watch("**/*.resize", {ignored: "node_modules"});
     const logger = getLogger();
     const queue = getQueue();
     await new Promise<void>(r => {

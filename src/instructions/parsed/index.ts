@@ -1,4 +1,5 @@
 import { AppError } from "../../errors";
+import { getLogger } from "../../logger";
 import { getPath } from "../../util";
 import { IRawDocument } from "../raw/types";
 import { IDocument, IOperationName, IPixelOrPercent, ISegment, IOperation, IStep } from "./types";
@@ -44,7 +45,7 @@ function parseParameters<T extends IOperationName>(operation: T, parameters: Rec
         // @ts-ignore
         const parser = translator[key];
         if (!parser) {
-            console.error(`Unknown parameter ${key}`);
+            getLogger().warn(`Unknown parameter ${key}`);
             return;
         }
 

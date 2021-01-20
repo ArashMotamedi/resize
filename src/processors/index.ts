@@ -1,14 +1,14 @@
-import sharp, { Sharp } from "sharp";
-import { IOperationName, ISegment, IStep } from "../instructions/parsed/types";
+import sharp from "sharp";
+import { IOperationName, ISegment } from "../instructions/parsed/types";
 import { getLogger } from "../logger";
 import { save } from "./save";
 import { crop } from "./crop";
 import { cover } from "./cover";
 import { resize } from "./resize";
-import { IOperationOptions } from "./types";
+import { IOperationProcessor } from "./types";
 import fs from "fs";
 
-const operators: { [key in IOperationName]: (options: IOperationOptions<key>) => Promise<Sharp> } = {
+const operators: { [key in IOperationName]: IOperationProcessor<key> } = {
     resize, crop, cover, save
 }
 
@@ -25,16 +25,29 @@ export async function processSegment(segment: ISegment) {
         return;
     }
 
-    let s = sharp(path);
+    let _sharp = sharp(path);
     for (let i = 0; i < steps.length; i++) {
         const step = steps[i];
-        const { operation, parameters } = step;
-        getLogger({ step }).debug(JSON.stringify({ operation, parameters }, undefined, 2));
-        s = await operators[operation]({
-            // @ts-ignore
-            step,
-            sharp: s
-        });
+        const logger = getLogger({ step });
+        const metadata = await _sharp.metadata();
+        const width = metadata.width ?? 0;
+        const height = metadata.height ?? 0;
+        try {
+            const { operation, parameters } = step;
+            getLogger({ step }).debug({ operation, parameters, width, height });
+            const result = await operators[operation]({
+                // @ts-ignore
+                step,
+                sharp: _sharp,
+                width,
+                height,
+            });
+            _sharp = sharp(await _sharp.toBuffer());
+        }
+        catch (e) {
+            logger.error(e);
+            break;
+        }
     }
 }
 

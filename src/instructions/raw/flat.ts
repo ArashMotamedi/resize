@@ -27,7 +27,7 @@ function getInterimDocument(input: string) {
     const instructionSet: IInterimInstructionSet[] = [];
 
     input = input.replaceAll("\r", "").replaceAll("\t", " ");
-    const lines = input.split("\n").filter(line => line.trim());
+    const lines = input.split("\n").filter(line => line.trim() && !line.trim().startsWith("//"));
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         const indent = getIndent(line);

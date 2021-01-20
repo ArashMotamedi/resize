@@ -10,7 +10,7 @@ import { getPath } from "./util";
 
 export async function watch() {
     const logger = getLogger();
-    const watcher = watchFiles("**/*.resize");
+    const watcher = watchFiles("**/*.resize", { ignored: "node_modules" });
     const operator = getOperator();
 
     watcher.on("add", async (file, stat) => {
@@ -62,7 +62,14 @@ function getOperator() {
     const segmentRepo = getSet<ISegment>(id);
     segmentRepo.addEventListener("add", segment => {
         getLogger({ segment }).debug("Segment added to repo");
-        imageRepo.add(segment.source.path);
+        const imageAdded = imageRepo.add(segment.source.path);
+        
+        if (imageAdded) {
+            // imageListener will trigger processing
+            return;
+        }
+
+        // Image was already in the repo, trigger processing
         getQueue().add(() => processSegment(segment));
     });
     segmentRepo.addEventListener("delete", segment => {

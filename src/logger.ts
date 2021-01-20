@@ -4,16 +4,17 @@ import colors from "colors";
 import { IDocument, IPath, ISegment, IStep } from "./instructions/parsed/types";
 import * as _path from "path";
 
+const indent = "   ";
 const outputs = ["log", "debug", "warn", "error"] as const;
 type IOutput = typeof outputs[number];
 
 export type ILogger = {
-    [key in IOutput]: (message: string) => void;
+    [key in IOutput]: (message: string | object) => void;
 }
 
 const outputColors = {
     log: colors.reset,
-    debug: colors.dim.white,
+    debug: colors.reset.dim,
     warn: colors.yellow,
     error: colors.red
 } as const;
@@ -48,8 +49,18 @@ export function getLogger(options?: { document?: IDocument, segment?: ISegment, 
     }
 
 
-    function write(output: "log" | "debug" | "warn" | "error", message: string) {
+    function write(output: "log" | "debug" | "warn" | "error", message: string | object) {
         if (config.silent) return;
+
+        if (typeof message !== "string") {
+            const oneLine = JSON.stringify(message);
+            if (oneLine.length < process.stdout.columns - indent.length) {
+                message = oneLine;
+            }
+            else {
+                message = JSON.stringify(message, undefined, indent.length);
+            }
+        }
 
         if (preamble) {
             if (lastOutput !== output || lastPreamble !== preamble) {
@@ -102,15 +113,15 @@ export function getLogger(options?: { document?: IDocument, segment?: ISegment, 
         write("error", message);
     }
 
-    function warn(message: string) {
+    function warn(message: string | object) {
         write("warn", message);
     }
 
-    function log(message: string) {
+    function log(message: string | object) {
         write("log", message);
     }
 
-    function debug(message: string) {
+    function debug(message: string | object) {
         if (!config.debug) return;
         write("debug", message);
     }

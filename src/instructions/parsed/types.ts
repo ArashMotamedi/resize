@@ -64,6 +64,23 @@ export interface IResizeOperation {
     }
 }
 
+export interface IFlipOperation {
+    operation: "flip",
+    parameters: {
+        horizontally?: boolean;
+        vertically?: boolean;
+    }
+}
+
+export interface IRotateOperation {
+    operation: "rotate",
+    parameters: {
+        degrees: "90cw" | "180cw" | "270cw" |
+        "90ccw" | "180ccw" | "270ccw";
+    }
+
+}
+
 export interface ICropOperation {
     operation: "crop",
     parameters: {

@@ -16,3 +16,13 @@ export function getPath(...segments: string[]) {
 
     return result;
 }
+
+export function pick<T, U extends (keyof T)>(object: T, ...keys: U[]): Pick<T, U> {
+    const result = {} as Pick<T, U>;
+    keys.forEach(key => {
+        result[key] = object[key]
+    });
+
+    return result;
+}
+
