@@ -1,0 +1,7 @@
+src
+lib
+imagetests
+node_modules
+babel.config.json
+tsconfig.json
+webpack.config.js

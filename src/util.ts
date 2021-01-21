@@ -3,7 +3,8 @@ import path from "path";
 import { IPath } from "./instructions/parsed/types";
 
 export function isValidDocumentFile(file: string, stat?: Stats) {
-    return stat?.isFile() && file.endsWith(".resize");
+    const isValid = stat?.isFile() && file?.endsWith(".resize");
+    return isValid;
 }
 
 export function getPath(...segments: string[]) {

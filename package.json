@@ -1,26 +1,47 @@
 {
-  "name": "image-resizer",
-  "version": "1.0.0",
-  "description": "",
-  "main": "lib/index.js",
-  "scripts": {
-    "build-once": "ttsc",
-    "run-once-once": "node lib/index.js -d",
-    "run-once-watch": "node lib/index.js -dw",
-    "build-watch": "ttsc -w",
-    "run-watch-once": "nodemon --watch lib lib/index.js -- -d",
-    "run-watch-watch": "nodemon --watch lib lib/index.js -- -dw",
-    "once-once": "npm-run-all -s build-once run-once-once",
-    "once-watch": "npm-run-all -s build-once run-once-watch",
-    "watch-once": "npm-run-all -p build-watch run-watch-once",
-    "watch-watch": "npm-run-all -p build-watch run-watch-watch"
+  "name": "resize",
+  "version": "1.0.6",
+  "description": "Resize images from the command line",
+  "keywords": [
+    "Image",
+    "Resize",
+    "CLI",
+    "Command Line"
+  ],
+  "author": {
+    "name": "Arash Motamedi",
+    "url": "https://arashmotamedi.com"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "homepage": "https://github.com/ArashMotamedi/resize",
+  "repository": "https://github.com/ArashMotamedi/resize",
+  "bugs": "https://github.com/ArashMotamedi/resize/issues",
+  "license": "MIT",
+  "bin": {
+    "resize": "./bin/resize",
+    "resize-watch": "./bin/resize-watch"
+  },
+  "scripts": {
+    "_dev-build-once": "ttsc",
+    "_dev-run-once-once": "node lib/index.js -d",
+    "_dev-run-once-watch": "node lib/index.js -dw",
+    "_dev-build-watch": "ttsc -w",
+    "_dev-run-watch-once": "nodemon --watch js lib/index.js -- -d",
+    "_dev-run-watch-watch": "nodemon --watch js lib/index.js -- -dw",
+    "dev-once-once": "npm-run-all -s _dev-build-once _dev-run-once-once",
+    "dev-once-watch": "npm-run-all -s _dev-build-once _dev-run-once-watch",
+    "dev-watch-once": "npm-run-all -p _dev-build-watch _dev-run-watch-once",
+    "dev-watch-watch": "npm-run-all -p _dev-build-watch _dev-run-watch-watch",
+    "_dist-build-once": "ttsc --module \"ESNext\" --outDir distsrc",
+    "_dist-webpack": "webpack",
+    "_dist-clean": "shx rm -rf distsrc",
+    "_dist-run": "node --trace-warnings dist/resize.js -d",
+    "bundle": "npm-run-all -s _dist-build-once _dist-webpack _dist-clean",
+    "prod": "npm-run-all -s bundle _dist-run",
+    "prepare": "npm run bundle",
+    "postpublish": "shx rm -rf dist"
+  },
   "dependencies": {
     "@types/command-line-args": "^5.0.0",
-    "@types/md5-file": "^4.0.2",
     "@types/mkdirp": "^1.0.1",
     "@types/node": "^14.14.20",
     "@types/object-hash": "^1.3.4",
@@ -28,8 +49,6 @@
     "chokidar": "^3.5.0",
     "colors": "^1.4.0",
     "command-line-args": "^5.1.1",
-    "core-js": "^3.8.2",
-    "md5-file": "^5.0.0",
     "mkdirp": "^1.0.4",
     "object-hash": "^2.1.1",
     "p-queue": "^6.6.2",
@@ -39,9 +58,16 @@
     "typescript-is": "^0.17.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.12.10",
+    "@babel/preset-env": "^7.12.11",
+    "babel-loader": "^8.2.2",
+    "babel-polyfill": "^6.26.0",
     "nodemon": "^2.0.7",
     "npm-run-all": "^4.1.5",
+    "shx": "^0.3.3",
     "ttypescript": "^1.5.12",
-    "typescript": "^4.1.3"
+    "typescript": "^4.1.3",
+    "webpack": "^5.16.0",
+    "webpack-cli": "^4.4.0"
   }
 }

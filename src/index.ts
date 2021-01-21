@@ -1,20 +1,19 @@
-import "core-js/es";
 import { getLogger } from "./logger";
 import { getConfig } from "./config";
 import { once } from "./once";
 import { watch } from "./watch";
 import sharp from "sharp";
 
-// a .resize file contains an document
+// a .resize file contains a document
 // a document contains an array of segments
 // an segment is a bundle of a source file and an array of steps
 // a step is a bundle of an operation name and an object of parameters
 
-async function main() {
-
+export async function main() {
+    polyfillReplaceAll();
+    sharp.cache(false);
     const config = getConfig();
     const logger = getLogger();
-    sharp.cache(false);
 
     if (config.watch) {
         logger.debug("Running in watch mode");
@@ -26,12 +25,27 @@ async function main() {
     }
 }
 
-main()
-    .then(() => 0)
-    .catch(e => {
-        console.error(e);
-        return 1;
-    })
-    .then(code => {
-        process.exit(code);
-    })
+console.log("hello");
+console.log(global.mode);
+main();
+
+function polyfillReplaceAll() {
+    if (!String.prototype.replaceAll) {
+        String.prototype.replaceAll = function (str: string | RegExp, newStr: any) {
+
+            // If a regex pattern
+            if (Object.prototype.toString.call(str).toLowerCase() === '[object regexp]') {
+                return this.replace(str, newStr);
+            }
+
+            // If a string
+            return this.replace(new RegExp(str, 'g'), newStr);
+
+        };
+    }
+}
+
+
+declare namespace global {
+    let mode: string | undefined;
+}

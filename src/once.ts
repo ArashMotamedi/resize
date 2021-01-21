@@ -8,7 +8,7 @@ import { IPath } from "./instructions/parsed/types";
 
 export async function once() {
     const files: IPath[] = [];
-    const watcher = watch("**/*.resize", {ignored: "node_modules"});
+    const watcher = watch("**/*.resize", { ignored: "node_modules" });
     const logger = getLogger();
     const queue = getQueue();
     await new Promise<void>(r => {
@@ -22,12 +22,13 @@ export async function once() {
             queue.add(() => r());
         });
 
-        watcher.on("add", (file, stat) => {
+        watcher.on("add", function addResizeDocument(file, stat) {
             if (!isValidDocumentFile(file, stat)) {
                 logger.debug(`not a .resize file: ${file}`);
                 return;
             }
-            files.push(getPath(file));
+            const path = getPath(file);
+            files.push(path);
         });
     });
 }
