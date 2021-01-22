@@ -14,6 +14,10 @@ export async function main() {
     sharp.cache(false);
     const config = getConfig();
     const logger = getLogger();
+    logger.debug(config);
+
+    console.log(process.execPath);
+    console.log(process.env);
 
     if (config.watch) {
         logger.debug("Running in watch mode");
@@ -25,8 +29,6 @@ export async function main() {
     }
 }
 
-console.log("hello");
-console.log(global.mode);
 main();
 
 function polyfillReplaceAll() {

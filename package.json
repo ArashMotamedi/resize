@@ -1,6 +1,6 @@
 {
   "name": "resize",
-  "version": "1.0.6",
+  "version": "1.0.8",
   "description": "Resize images from the command line",
   "keywords": [
     "Image",
@@ -17,8 +17,7 @@
   "bugs": "https://github.com/ArashMotamedi/resize/issues",
   "license": "MIT",
   "bin": {
-    "resize": "./bin/resize",
-    "resize-watch": "./bin/resize-watch"
+    "resize": "./bin/resize"
   },
   "scripts": {
     "_dev-build-once": "ttsc",

@@ -1,3 +1,2 @@
 #!/usr/bin/env node
-global.mode = "watch";
 require("../dist/resize");
