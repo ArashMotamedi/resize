@@ -6,7 +6,7 @@ import path from "path";
 import { getDocument } from "./instructions";
 import { processSegment } from "./processors";
 import { IPath, ISegment } from "./instructions/parsed/types";
-import { getPath } from "./util";
+import { getPath, isValidDocumentFile } from "./util";
 
 export async function watch() {
     const logger = getLogger();
@@ -14,8 +14,8 @@ export async function watch() {
     const operator = getOperator();
 
     watcher.on("add", async (file, stat) => {
-        if (!stat?.isFile() || !file.endsWith(".resize")) {
-            logger.debug(`${file} is not a file or doesn't end with .resize`)
+        if (!isValidDocumentFile(file, stat)) {
+            logger.debug(`not a .resize file: ${file}`);
             return;
         }
         const path = getPath(file);
@@ -63,7 +63,7 @@ function getOperator() {
     segmentRepo.addEventListener("add", segment => {
         getLogger({ segment }).debug("Segment added to repo");
         const imageAdded = imageRepo.add(segment.source.path);
-        
+
         if (imageAdded) {
             // imageListener will trigger processing
             return;
