@@ -21,11 +21,11 @@
   },
   "scripts": {
     "_dev-build-once": "ttsc",
-    "_dev-run-once-once": "node lib/index.js -d",
-    "_dev-run-once-watch": "node lib/index.js -dw",
+    "_dev-run-once-once": "node lib/index.js -d --then echo",
+    "_dev-run-once-watch": "node lib/index.js -dw --and echo",
     "_dev-build-watch": "ttsc -w",
-    "_dev-run-watch-once": "nodemon --watch js lib/index.js -- -d",
-    "_dev-run-watch-watch": "nodemon --watch js lib/index.js -- -dw",
+    "_dev-run-watch-once": "nodemon --watch js lib/index.js -- -d --then echo",
+    "_dev-run-watch-watch": "nodemon --watch js lib/index.js -- -dw --and echo",
     "dev-once-once": "npm-run-all -s _dev-build-once _dev-run-once-once",
     "dev-once-watch": "npm-run-all -s _dev-build-once _dev-run-once-watch",
     "dev-watch-once": "npm-run-all -p _dev-build-watch _dev-run-watch-once",
@@ -37,7 +37,8 @@
     "bundle": "npm-run-all -s _dist-build-once _dist-webpack _dist-clean",
     "prod": "npm-run-all -s bundle _dist-run",
     "prepare": "npm run bundle",
-    "postpublish": "shx rm -rf dist"
+    "postpublish": "shx rm -rf dist",
+    "echo": "shx echo 'hello'"
   },
   "dependencies": {
     "sharp": "^0.27.0"

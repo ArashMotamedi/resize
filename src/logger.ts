@@ -28,23 +28,29 @@ function relative(path: IPath) {
 }
 
 export function getLogger(): ILogger;
+export function getLogger(tag: string): ILogger;
 export function getLogger(options: { document: IDocument }): ILogger;
 export function getLogger(options: { segment: ISegment }): ILogger;
 export function getLogger(options: { step?: IStep }): ILogger;
-export function getLogger(options?: { document?: IDocument, segment?: ISegment, step?: IStep }): ILogger {
+export function getLogger(options?: string | { document?: IDocument, segment?: ISegment, step?: IStep }): ILogger {
     const config = getConfig();
     let preamble: string | undefined = undefined;
 
     {
-        const { step, segment, document } = options ?? {};
-        if (step) {
-            preamble = `${relative(step.segment.document.file)} > ${step.segment.source.name} (${step.segment.index + 1}) > ${step.operation} (${step.index + 1})`
+        if (typeof options === "string") {
+            preamble = options;
         }
-        else if (segment) {
-            preamble = `${relative(segment.document.file)} > ${segment.source.name} (${segment.index + 1})`;
-        }
-        else if (document) {
-            preamble = `${relative(document.file)}`;
+        else {
+            const { step, segment, document } = options ?? {};
+            if (step) {
+                preamble = `${relative(step.segment.document.file)} > ${step.segment.source.name} (${step.segment.index + 1}) > ${step.operation} (${step.index + 1})`
+            }
+            else if (segment) {
+                preamble = `${relative(segment.document.file)} > ${segment.source.name} (${segment.index + 1})`;
+            }
+            else if (document) {
+                preamble = `${relative(document.file)}`;
+            }
         }
     }
 
@@ -91,7 +97,7 @@ export function getLogger(options?: { document?: IDocument, segment?: ISegment, 
             message = e;
         }
         else if (e instanceof AppError) {
-            message = e.message;
+            message = [e.message, e.description].filter(p => p).join(" ");
         } else if (e instanceof Error) {
             message = e.message;
         }

@@ -5,3 +5,4 @@ node_modules
 babel.config.json
 tsconfig.json
 webpack.config.js
+package-lock.json

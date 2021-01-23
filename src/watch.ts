@@ -1,14 +1,14 @@
 import { watch as watchFiles } from "chokidar";
 import { MD5 } from "object-hash";
 import { getLogger } from "./logger";
-import { getQueue } from "./queue";
+import Queue from "p-queue";
 import path from "path";
 import { getDocument } from "./instructions";
 import { processSegment } from "./processors";
 import { IPath, ISegment } from "./instructions/parsed/types";
 import { getPath, isValidDocumentFile } from "./util";
 
-export async function watch() {
+export function watch() {
     const logger = getLogger();
     const watcher = watchFiles("**/*.resize", { ignored: "node_modules" });
     const operator = getOperator();
@@ -35,7 +35,7 @@ export async function watch() {
         operator.removeDocument(path);
     })
 
-    await new Promise(r => setInterval(() => { }, 10000));
+    return { addEventListener: operator.addEventListener }
 }
 
 function id(segment: ISegment) {
@@ -48,6 +48,10 @@ function id(segment: ISegment) {
 }
 function getOperator() {
     const logger = getLogger();
+    const queue = new Queue({ concurrency: 1 });
+    const status = getStatus(1000);
+    queue.on("add", () => status.setStatus("busy"));
+    queue.on("idle", () => status.setStatus("idle"));
     const imageWatcher = watchFiles([], { disableGlobbing: true, usePolling: true });
 
     imageWatcher.on("add", imageListener);
@@ -56,7 +60,7 @@ function getOperator() {
         file = path.resolve(file);
         logger.debug(`${file} updated`);
         const segments = segmentRepo.filter(s => s.source.path === file);
-        getQueue().addAll(segments.map(segment => () => processSegment(segment)));
+        queue.addAll(segments.map(segment => () => processSegment(segment)));
     }
 
     const segmentRepo = getSet<ISegment>(id);
@@ -70,7 +74,7 @@ function getOperator() {
         }
 
         // Image was already in the repo, trigger processing
-        getQueue().add(() => processSegment(segment));
+        queue.add(() => processSegment(segment));
     });
     segmentRepo.addEventListener("delete", segment => {
         getLogger({ segment }).debug("Segment removed from repo");
@@ -86,7 +90,6 @@ function getOperator() {
     imageRepo.addEventListener("delete", path => {
         imageWatcher.unwatch(path);
     })
-
 
     async function addDocument(file: IPath) {
         const document = await getDocument(file);
@@ -111,7 +114,7 @@ function getOperator() {
 
 
     return {
-        addDocument, removeDocument
+        addDocument, removeDocument, addEventListener: status.addEventListener
     }
 }
 
@@ -179,4 +182,49 @@ function getSet<T>(hash: (item: T) => string) {
         add, delete: _delete, has, values, filter, addEventListener, removeEventListener
     }
 
+}
+
+
+function getStatus(timeout: number) {
+    const logger = getLogger("STATUS");
+    type IStatus = "idle" | "busy";
+    const listeners: { [key in IStatus]: Set<(event: IStatus) => void> } = {
+        "idle": new Set(),
+        "busy": new Set(),
+    };
+
+    let timer: any = null;
+    let status: IStatus | undefined = undefined;
+
+    function setBusy() {
+        if (status === "busy") return;
+        clearTimeout(timer);
+        status = "busy";
+        notify("busy");
+    }
+
+    function setIdle() {
+        if (status === "idle") return;
+        status = "idle";
+        timer = setTimeout(() => {
+            notify("idle");
+        }, timeout);
+    }
+
+    function setStatus(status: IStatus) {
+        status === "busy" ? setBusy() : setIdle();
+    }
+
+    function notify(event: IStatus) {
+        logger.debug(`Status: ${event}`)
+        listeners[event].forEach(listener => setImmediate(() => listener(event)));
+    }
+
+    function addEventListener(event: IStatus, listener: (event: IStatus) => void) {
+        listeners[event].add(listener);
+    }
+
+    return {
+        setStatus, addEventListener
+    }
 }

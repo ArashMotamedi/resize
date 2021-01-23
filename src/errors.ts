@@ -8,6 +8,7 @@ interface IAdditionalDetails {
     line?: number,
     char?: number;
     innerError?: any;
+    description?: string;
     [key: string]: string | number | boolean | undefined;
 }
 
@@ -18,21 +19,26 @@ export const errors = [
     "notSupported",
     "saveNoFileName",
     "saveInvalidExtension",
-    "invalidDimensions"
+    "invalidDimensions",
+    "invalidArguments",
+    "notInNpm",
+    "npmScriptNotFound",
 ] as const;
 
 export type IErrorTypes = typeof errors[number];
 
 export const errorDetails: Record<IErrorTypes, IErrorDetails> = {
-    notJson: { message: "Not JSON" },
+    notJson: { message: "Not JSON." },
     invalidFormat: { message: "Invalid file format." },
-    noMatch: { message: "Not a match" },
-    notSupported: { message: "Not supported" },
+    noMatch: { message: "Not a match." },
+    notSupported: { message: "Not supported." },
     saveNoFileName: { message: "A file name was not provided." },
     saveInvalidExtension: { message: "Invalid file extension." },
-    invalidDimensions: { message: "Invalid dimensions." }
+    invalidDimensions: { message: "Invalid dimensions." },
+    invalidArguments: { message: "Invalid arguments." },
+    notInNpm: { message: "Not in NPM." },
+    npmScriptNotFound: { message: "NPM script not found." }
 }
-
 
 export class AppError extends Error {
     name: IErrorTypes;
@@ -41,6 +47,7 @@ export class AppError extends Error {
     line?: number;
     char?: number;
     innerError?: any;
+    description?: string;
 
     constructor(key: IErrorTypes, details?: IAdditionalDetails) {
         const { message, moreInfo } = errorDetails[key];

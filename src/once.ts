@@ -1,6 +1,6 @@
 import { watch } from "chokidar";
 import { getLogger } from "./logger";
-import { getQueue } from "./queue";
+import Queue from "p-queue";
 import { getDocument } from "./instructions";
 import { processSegment } from "./processors";
 import { getPath, isValidDocumentFile } from "./util";
@@ -10,7 +10,7 @@ export async function once() {
     const files: IPath[] = [];
     const watcher = watch("**/*.resize", { ignored: "node_modules" });
     const logger = getLogger();
-    const queue = getQueue();
+    const queue = new Queue({ concurrency: 1 });;
     await new Promise<void>(r => {
         watcher.on("ready", async () => {
             watcher.removeAllListeners();
