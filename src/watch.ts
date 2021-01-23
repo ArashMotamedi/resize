@@ -50,8 +50,11 @@ function getOperator() {
     const logger = getLogger();
     const queue = new Queue({ concurrency: 1 });
     const status = getStatus(1000);
+    
     queue.on("add", () => status.setStatus("busy"));
     queue.on("idle", () => status.setStatus("idle"));
+    status.setStatus("idle");
+
     const imageWatcher = watchFiles([], { disableGlobbing: true, usePolling: true });
 
     imageWatcher.on("add", imageListener);
