@@ -15,25 +15,19 @@ const acceptableExtensions: Record<string, keyof sharp.FormatEnum> = {
 export async function save(options: IOperationOptions<"save">) {
     const { sharp, step } = options;
     const { parameters } = step;
-    const { as } = parameters;
+    const { as, quality } = parameters;
     if (!as) {
         throw new AppError("saveNoFileName");
     }
 
-    const originalFormat = (await sharp.metadata()).format;
-    let targetFormat: typeof originalFormat = "input";
     const extension = as.substr(as.lastIndexOf(".") + 1).toLowerCase();
-    if (acceptableExtensions.hasOwnProperty(extension)) {
-        targetFormat = acceptableExtensions[extension];
-    }
-    else {
+    if (!acceptableExtensions.hasOwnProperty(extension))
         throw new AppError("saveInvalidExtension")
-    }
 
+    const targetFormat = acceptableExtensions[extension];
 
-    if (targetFormat !== "input" || targetFormat !== originalFormat) {
-        sharp.toFormat(targetFormat);
-    }
+    const targetQuality = quality?.value ?? 100;
+    sharp.toFormat(targetFormat, { quality: targetQuality });
 
     const file = path.resolve(step.segment.document.file.dir, as);
     const dir = path.dirname(file);

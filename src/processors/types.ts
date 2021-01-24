@@ -1,4 +1,4 @@
-import { Sharp } from "sharp";
+import sharp, { Sharp } from "sharp";
 import { IDocument, IOperationName, ISegment, IStep } from "../instructions/parsed/types";
 
 export type IOperationOptions<T extends (IOperationName | void) = void> = {

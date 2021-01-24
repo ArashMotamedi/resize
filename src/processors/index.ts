@@ -8,6 +8,8 @@ import { resize } from "./resize";
 import { IOperationProcessor } from "./types";
 import fs from "fs";
 
+type IDefined<T> = T extends infer U | undefined ? U : T;
+
 const operators: { [key in IOperationName]: IOperationProcessor<key> } = {
     resize, crop, cover, save
 }
@@ -26,6 +28,9 @@ export async function processSegment(segment: ISegment) {
     }
 
     let _sharp = sharp(path);
+    _sharp.toFormat("webp", { lossless: true });
+    _sharp = sharp(await (_sharp.toBuffer()))
+
     for (let i = 0; i < steps.length; i++) {
         const step = steps[i];
         const logger = getLogger({ step });
