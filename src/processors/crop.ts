@@ -11,7 +11,7 @@ export async function crop(options: IOperationOptions<"crop">) {
         bottom: { value: 0, unit: "px" },
     }
     let { top, left, right, bottom } = { ...defaultParams, ...step.parameters };
-    
+
     // Convert percent to pixel
     [
         [top, height] as const,
@@ -20,7 +20,7 @@ export async function crop(options: IOperationOptions<"crop">) {
         [bottom, height] as const
     ].forEach(([edge, total]) => {
         if (edge.unit === "%") {
-            edge.value = total * edge.value * .01;
+            edge.value = Math.floor(total * edge.value * .01);
             edge.unit = "px";
         }
     });
