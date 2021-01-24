@@ -20,7 +20,7 @@ export async function crop(options: IOperationOptions<"crop">) {
         [bottom, height] as const
     ].forEach(([edge, total]) => {
         if (edge.unit === "%") {
-            edge.value = total * edge.value;
+            edge.value = total * edge.value * .01;
             edge.unit = "px";
         }
     });
