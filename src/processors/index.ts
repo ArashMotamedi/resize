@@ -28,9 +28,6 @@ export async function processSegment(segment: ISegment) {
     }
 
     let _sharp = sharp(path);
-    _sharp.toFormat("webp", { lossless: true });
-    _sharp = sharp(await (_sharp.toBuffer()))
-
     for (let i = 0; i < steps.length; i++) {
         const step = steps[i];
         const logger = getLogger({ step });
