@@ -50,10 +50,20 @@ function getOperator() {
     const logger = getLogger();
     const queue = new Queue({ concurrency: 1 });
     const status = getStatus(1000);
-    
+
     queue.on("add", () => status.setStatus("busy"));
     queue.on("idle", () => status.setStatus("idle"));
     status.setStatus("idle");
+    status.addEventListener("idle", () => {
+        logger.log(segmentRepo.values().map(s => ({
+            documentPath: s.document.file.path,
+            sourcePath: s.source.path,
+            steps: s.steps.map(s => ({
+                operation: s.operation,
+                parameters: s.parameters
+            }))
+        })));
+    });
 
     const imageWatcher = watchFiles([], { disableGlobbing: true, usePolling: true });
 
@@ -114,21 +124,20 @@ function getOperator() {
         segmentRepo.filter(s => s.document.file.path === file.path).forEach(segmentRepo.delete);
     }
 
-
-
     return {
         addDocument, removeDocument, addEventListener: status.addEventListener
     }
 }
 
 function getSet<T>(hash: (item: T) => string) {
-    const set = new Set<string>();
+    // const set = new Set<string>();
     const map = new Map<string, T>();
 
     function add(item: T) {
         const id = hash(item);
-        if (set.has(id)) return false;
-        set.add(id);
+        if (map.has(id)) return false;
+        // if (set.has(id)) return false;
+        // set.add(id);
         map.set(id, item);
         notify("add", item);
         return true;
@@ -136,8 +145,9 @@ function getSet<T>(hash: (item: T) => string) {
 
     function _delete(item: T) {
         const id = hash(item);
-        const result = set.delete(id);
-        if (!result) return false;
+        if (!map.has(id)) return false;
+        // const result = set.delete(id);
+        // if (!result) return false;
         map.delete(id);
         notify("delete", item);
         return true;
@@ -145,11 +155,11 @@ function getSet<T>(hash: (item: T) => string) {
 
     function has(item: T) {
         const id = hash(item);
-        return set.has(id);
+        return map.has(id);
     }
 
     function values() {
-        return map.values();
+        return [...map.values()];
     }
 
     function filter(predicate: (item: T) => any) {

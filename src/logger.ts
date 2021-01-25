@@ -3,6 +3,7 @@ import { AppError } from "./errors";
 import colors from "colors";
 import { IDocument, IPath, ISegment, IStep } from "./instructions/parsed/types";
 import * as _path from "path";
+import { DeepReadonly } from "ts-essentials";
 
 const indent = "   ";
 const outputs = ["log", "debug", "warn", "error"] as const;
@@ -31,8 +32,8 @@ export function getLogger(): ILogger;
 export function getLogger(tag: string): ILogger;
 export function getLogger(options: { document: IDocument }): ILogger;
 export function getLogger(options: { segment: ISegment }): ILogger;
-export function getLogger(options: { step?: IStep }): ILogger;
-export function getLogger(options?: string | { document?: IDocument, segment?: ISegment, step?: IStep }): ILogger {
+export function getLogger(options: { step: IStep | DeepReadonly<IStep> }): ILogger;
+export function getLogger(options?: string | { document?: IDocument, segment?: ISegment, step?: IStep | DeepReadonly<IStep> }): ILogger {
     const config = getConfig();
     let preamble: string | undefined = undefined;
 

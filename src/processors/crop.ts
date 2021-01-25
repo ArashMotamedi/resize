@@ -10,21 +10,25 @@ export async function crop(options: IOperationOptions<"crop">) {
         right: { value: 0, unit: "px" },
         bottom: { value: 0, unit: "px" },
     }
-    let { top, left, right, bottom } = { ...defaultParams, ...step.parameters };
+
+    let parameters = { ...defaultParams, ...step.parameters };
 
     // Convert percent to pixel
     [
-        [top, height] as const,
-        [left, width] as const,
-        [right, width] as const,
-        [bottom, height] as const
+        ["top", height] as const,
+        ["left", width] as const,
+        ["right", width] as const,
+        ["bottom", height] as const
     ].forEach(([edge, total]) => {
-        if (edge.unit === "%") {
-            edge.value = Math.floor(total * edge.value * .01);
-            edge.unit = "px";
+        if (parameters[edge].unit === "%") {
+            parameters[edge] = {
+                value: Math.floor(total * parameters[edge].value * .01),
+                unit: "px"
+            };
         }
     });
 
+    const { top, left, right, bottom } = parameters;
     const cropWidth = width - left.value - right.value;
     const cropHeight = height - top.value - bottom.value;
 
